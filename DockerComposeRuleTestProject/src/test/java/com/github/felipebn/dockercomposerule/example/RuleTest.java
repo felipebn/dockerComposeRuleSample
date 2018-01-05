@@ -1,5 +1,12 @@
 package com.github.felipebn.dockercomposerule.example;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
+
 import org.joda.time.Duration;
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -13,6 +20,7 @@ public class RuleTest {
 
     @ClassRule
     public static final EnvironmentVariables environmentVariables  = new EnvironmentVariables() {{
+        //This needs to be defined according to the target environment
         set("DOCKER_COMPOSE_LOCATION", "C:/Program Files/Docker/Docker/resources/bin/docker-compose.exe");
         set("DOCKER_LOCATION", "C:/Program Files/Docker/Docker/resources/bin/docker.exe");
     }};
@@ -29,10 +37,22 @@ public class RuleTest {
 
 
     @Test
-    public void testContainers() throws InterruptedException {
+    public void testContainers() throws InterruptedException, UnknownHostException, IOException {
         DockerPort neo4jOnePort = docker.containers().container("neo4j_one").port(7687);
         DockerPort neo4jTwoPort = docker.containers().container("neo4j_two").port(7687);
-        System.out.println("Neo4j One port: " + neo4jOnePort.getExternalPort());
-        System.out.println("Neo4j Two port: " + neo4jTwoPort.getExternalPort());
+        Assert.assertNotEquals(neo4jOnePort.getExternalPort(), neo4jTwoPort.getExternalPort());
+
+        assertAbleToConnect(neo4jOnePort);
+        assertAbleToConnect(neo4jTwoPort);
+    }
+
+    private void assertAbleToConnect(DockerPort port) throws IOException {
+        SocketAddress target = new InetSocketAddress("localhost", port.getExternalPort());
+        try(Socket s = new Socket()){
+            s.connect(target, 1000);
+            if(! s.isConnected() ) {
+                Assert.fail("Not able to connect to " + target);
+            }
+        }
     }
 }
