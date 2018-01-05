@@ -1,0 +1,31 @@
+version: "3"
+services:
+
+  neo4j_one:
+    image: neo4j:3.1.6
+    environment:
+      - NEO4J_AUTH=neo4j/test
+    ports:
+      - "7474"
+      - "7687"
+    volumes:
+      - one_graphdb_data:/data
+      - one_graphdb_logs:/logs
+
+  neo4j_two:
+    image: neo4j:3.1.6
+    environment:
+      - NEO4J_AUTH=neo4j/test
+    ports:
+      - "7474"
+      - "7687"
+    volumes: 
+      - two_graphdb_data:/data
+      - two_graphdb_logs:/logs
+
+
+volumes: 
+  one_graphdb_data:
+  one_graphdb_logs:
+  two_graphdb_data:
+  two_graphdb_logs:
